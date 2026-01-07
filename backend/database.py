@@ -9,7 +9,7 @@ def init_db():
             id INTEGER PRIMARY KEY,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
             percentage REAL,
-            voltage REAL,
+            voltage REAL, 
             temperature REAL
         )
     """)

@@ -1,6 +1,16 @@
 /*
  * Smart Charger Battery Monitor - ESP8266
  * Final Version - Simple & Stable
+ *
+ * PlatformIO Configuration:
+ * [env:nodemcuv2]
+ * platform = espressif8266
+ * board = nodemcuv2
+ * framework = arduino
+ * monitor_speed = 115200
+ * monitor_port = COM3
+ * upload_port = COM3
+ * lib_deps = bblanchon/ArduinoJson@^7.0.0
  */
 #include <Arduino.h>
 #include <ArduinoJson.h>
@@ -136,8 +146,13 @@ void readSensors() {
   lastT = temperature;
   
   // Calculate percentage
-  percentage = map(voltage * 100, BATTERY_MIN_VOLTAGE * 100, 
-                   BATTERY_MAX_VOLTAGE * 100, 0, 100);
+  if (voltage >= BATTERY_MAX_VOLTAGE) {
+    percentage = 100;
+  } else if (voltage <= BATTERY_MIN_VOLTAGE) {
+    percentage = 0;
+  } else {
+    percentage = ((voltage - BATTERY_MIN_VOLTAGE) / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE)) * 100;
+  }
   percentage = constrain(percentage, 0, 100);
   
   // Check charging status
