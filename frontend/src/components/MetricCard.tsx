@@ -40,7 +40,7 @@ export const MetricCard = ({
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.2 }}
     >
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-1">
         <span className="text-sm text-muted-foreground">{title}</span>
         <div className={`p-2 rounded-lg bg-${color}/10 ${colorClasses[color]}`}>
           <Icon className="w-4 h-4" />

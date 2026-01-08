@@ -37,7 +37,7 @@ export const ActivityLog = ({ logs }: ActivityLogProps) => {
       transition={{ delay: 0.3 }}
     >
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-foreground">Log Aktivitas</h2>
+        <h2 className="text-lg font-semibold text-foreground">Notifikasi</h2>
         <Clock className="w-5 h-5 text-muted-foreground" />
       </div>
 

@@ -4,18 +4,12 @@ import { Header } from '@/components/Header';
 import { BatteryGauge } from '@/components/BatteryGauge';
 import { MetricCard } from '@/components/MetricCard';
 import { RelayControl } from '@/components/RelayControl';
-import { PowerChart } from '@/components/PowerChart';
-import { ActivityLog } from '@/components/ActivityLog';
-import { SystemStatus } from '@/components/SystemStatus';
 import { useBatteryData } from '@/hooks/useBatteryData';
 
 const Index = () => {
   const {
     batteryData,
     relayStatus,
-    activityLogs,
-    systemStatus,
-    powerHistory,
     toggleRelay,
     updateAutoShutoff,
   } = useBatteryData();
@@ -32,9 +26,6 @@ const Index = () => {
         {/* Header */}
         <Header />
 
-        {/* System Status Bar */}
-        <SystemStatus status={systemStatus} />
-
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Column - Battery Gauge & Relay Control */}
@@ -46,6 +37,11 @@ const Index = () => {
             >
               <BatteryGauge data={batteryData} />
             </motion.div>
+          </div>
+
+          {/* Center Column - Metrics & Chart */}
+          <div className="lg:col-span-5 space-y-6">
+            <div className="lg:col-span-4 space-y-6">
 
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -59,11 +55,19 @@ const Index = () => {
               />
             </motion.div>
           </div>
+          </div>
 
-          {/* Center Column - Metrics & Chart */}
-          <div className="lg:col-span-5 space-y-6">
+          {/* Right Column - Activity Log */}
+          <div className="lg:col-span-3">
             {/* Metrics Grid */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
+              <MetricCard
+                title="Sisa Waktu Pengecasan"
+                value={formatTimeRemaining(batteryData.timeRemaining)}
+                unit=""
+                icon={Clock}
+                color={batteryData.timeRemaining < 30 ? 'destructive' : 'success'}
+              />
               <MetricCard
                 title="Tegangan"
                 value={batteryData.voltage}
@@ -85,22 +89,7 @@ const Index = () => {
                 icon={Zap}
                 color="primary"
               />
-              <MetricCard
-                title="Sisa Waktu"
-                value={formatTimeRemaining(batteryData.timeRemaining)}
-                unit=""
-                icon={Clock}
-                color={batteryData.timeRemaining < 30 ? 'destructive' : 'success'}
-              />
             </div>
-
-            {/* Power Chart */}
-            <PowerChart data={powerHistory} />
-          </div>
-
-          {/* Right Column - Activity Log */}
-          <div className="lg:col-span-3">
-            <ActivityLog logs={activityLogs} />
           </div>
         </div>
 
@@ -111,7 +100,8 @@ const Index = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          <p>BatteryIoT Dashboard v1.0 • Arduino + Python Backend</p>
+          <p>IOT Project by Group 18 2025-1</p>
+          <em>Supported by Lovable</em>
         </motion.footer>
       </div>
     </div>

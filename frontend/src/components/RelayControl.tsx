@@ -52,7 +52,7 @@ export const RelayControl = ({ status, onToggle, onUpdateAutoShutoff }: RelayCon
 
   return (
     <>
-      <div className="glass-panel p-6 space-y-6">
+      <div className="glass-panel p-6 space-y-10">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-foreground">Kontrol Relay</h2>
           <button
@@ -134,9 +134,9 @@ export const RelayControl = ({ status, onToggle, onUpdateAutoShutoff }: RelayCon
               }`}
             />
             <div>
-              <span className="text-xs text-muted-foreground block">Auto Shutoff</span>
+              <span className="text-xs text-muted-foreground block">Auto Charge</span>
               <span className="text-sm font-medium">
-                {status.autoShutoffEnabled ? `Aktif (${status.autoShutoffThreshold}%)` : 'Nonaktif'}
+                {status.isConnected ? `Nyala saat (${status.autoShutoffThreshold}%)` : 'Nonaktif'}
               </span>
             </div>
           </div>
@@ -154,34 +154,27 @@ export const RelayControl = ({ status, onToggle, onUpdateAutoShutoff }: RelayCon
               <div className="pt-4 border-t border-border/50 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-sm font-medium">Auto Shutoff</span>
+                    <span className="text-sm font-medium">Auto Charge</span>
                     <p className="text-xs text-muted-foreground">
-                      Matikan arus otomatis saat baterai rendah
+                      Hidupkan arus otomatis saat baterai rendah
                     </p>
                   </div>
-                  <Switch
-                    checked={status.autoShutoffEnabled}
-                    onCheckedChange={(checked) => onUpdateAutoShutoff(checked)}
-                  />
                 </div>
 
-                {status.autoShutoffEnabled && (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Threshold</span>
                       <span className="font-mono text-primary">{localThreshold}%</span>
                     </div>
                     <Slider
                       value={[localThreshold]}
                       onValueChange={([value]) => setLocalThreshold(value)}
                       onValueCommit={([value]) => onUpdateAutoShutoff(true, value)}
-                      min={5}
-                      max={50}
+                      min={25}
+                      max={80}
                       step={5}
                       className="w-full"
                     />
                   </div>
-                )}
               </div>
             </motion.div>
           )}

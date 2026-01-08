@@ -25,7 +25,7 @@ export const PowerChart = ({ data }: PowerChartProps) => {
       transition={{ delay: 0.2 }}
     >
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-foreground">Grafik Penggunaan Daya</h2>
+        <h2 className="text-lg font-semibold text-foreground">Grafik Suhu Baterai/30 Menit</h2>
         <div className="flex items-center gap-2">
           <Activity className="w-5 h-5 text-primary animate-pulse" />
           <span className="text-sm text-muted-foreground">Real-time</span>
