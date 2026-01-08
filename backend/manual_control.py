@@ -1,16 +1,19 @@
 import serial
 import time
 
-# GANTI PORT SESUAI DEVICE
 PORT = "COM5"
 BAUD = 115200
 
 def main():
     ser = serial.Serial(PORT, BAUD, timeout=1)
-    time.sleep(2)  # tunggu Arduino ready
+    time.sleep(2)
 
     print("Connected to Arduino")
     print("Commands: ON | OFF | STATUS | EXIT")
+
+    # SET MODE MANUAL SEKALI SAAT START
+    ser.write(("MODE:MANUAL\n").encode())
+    time.sleep(0.2)
 
     while True:
         cmd = input(">> ").strip().upper()
@@ -18,11 +21,18 @@ def main():
         if cmd == "EXIT":
             break
 
-        if cmd not in ["ON", "OFF", "STATUS"]:
+        if cmd == "ON":
+            ser.write(("ON\n").encode())
+
+        elif cmd == "OFF":
+            ser.write(("OFF\n").encode())
+
+        elif cmd == "STATUS":
+            ser.write(("STATUS\n").encode())
+
+        else:
             print("Invalid command")
             continue
-
-        ser.write((cmd + "\n").encode())
 
         # baca respon Arduino
         time.sleep(0.2)

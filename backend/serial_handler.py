@@ -1,27 +1,32 @@
-import serial, json, time
-from globals import ser, battery_data, data_lock, connection_status
-from config import BAUD_RATE, TIMEOUT
+import serial
+import time
+
+ser = None
+
+BAUD_RATE = 115200
+TIMEOUT = 1
+
 
 def init_serial(port):
-    global ser, connection_status
+    global ser
     ser = serial.Serial(port, BAUD_RATE, timeout=TIMEOUT)
     time.sleep(2)
-    connection_status = True
+    print(f"Serial connected: {port}")
 
-def read_serial():
-    while True:
-        if ser and ser.in_waiting:
-            line = ser.readline().decode().strip()
-            try:
-                data = json.loads(line)
-                with data_lock:
-                    battery_data.update(data)
-            except:
-                pass
-        time.sleep(0.1)
 
 def send_command(cmd):
     if not ser:
-        return {"error": "Serial not connected"}
-    ser.write((json.dumps({"command": cmd}) + "\n").encode())
-    return {"status": "sent"}
+        print("Serial not connected")
+        return
+
+    ser.write((cmd + "\n").encode())
+    print(f">> SENT: {cmd}")
+
+
+def read_serial():
+    if not ser:
+        return
+
+    while ser.in_waiting:
+        line = ser.readline().decode().strip()
+        print("<<", line)

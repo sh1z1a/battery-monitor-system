@@ -3,12 +3,12 @@ import psutil
 from serial_handler import init_serial, send_command
 
 # ====== CONFIG ======
-PORT = "COM3"
+PORT = "COM5"
 LOW_THRESHOLD = 80     # % → charge ON
 HIGH_THRESHOLD = 90    # % → charge OFF
 CHECK_INTERVAL = 10    # detik
 
-current_state = "OFF"  # track status SSR
+current_state = "OFF"
 
 
 def get_battery():
@@ -24,6 +24,10 @@ def main():
     init_serial(PORT)
     print("AUTO CHARGER STARTED")
 
+    # ===== SET MODE AUTO SEKALI =====
+    send_command("MODE:AUTO")
+    time.sleep(1)
+
     while True:
         battery = get_battery()
 
@@ -34,7 +38,7 @@ def main():
 
         print(f"Battery: {battery}% | SSR: {current_state}")
 
-        # ====== DECISION ======
+        # ====== DECISION LOGIC ======
         if battery <= LOW_THRESHOLD and current_state != "ON":
             print("→ Battery low, CHARGE ON")
             send_command("ON")
