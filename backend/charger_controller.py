@@ -3,6 +3,19 @@ import time
 import psutil
 import serial
 
+# ===== CONFIG =====
+
+BAUD = 115200
+TIMEOUT = 1
+PORT = 'COM3'
+
+LOW_THRESHOLD = 80
+HIGH_THRESHOLD = 90
+CHECK_INTERVAL = 10
+
+current_mode = "MANUAL"
+current_state = "OFF"
+
 # =========================================
 
 
@@ -56,7 +69,7 @@ def auto_mode(ser):
     global current_state
 
     print("\n=== AUTO MODE ===")
-    print("Type MANUAL to switch mode")
+    print("Commands: MANUAL (switch to manual) | EXIT (quit)")
 
     while True:
         battery = get_battery()
@@ -86,11 +99,17 @@ def auto_mode(ser):
             time.sleep(0.1)
 
             try:
-                cmd = input("")
-                if cmd.strip().upper() == "MANUAL":
+                cmd = input("").strip().upper()
+                if cmd == "MANUAL":
                     set_mode(ser, "MANUAL")
                     return
-            except:
+                elif cmd == "EXIT":
+                    print("→ Exiting AUTO mode")
+                    return
+            except EOFError:
+                # Handle Ctrl+D
+                pass
+            except Exception as e:
                 pass
 
 

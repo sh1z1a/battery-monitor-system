@@ -27,7 +27,7 @@ export const Header = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      {/* <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="w-5 h-5 text-muted-foreground" />
           <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
@@ -54,7 +54,7 @@ export const Header = () => {
             <DropdownMenuItem className="text-destructive">Keluar</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      </div> */}
     </motion.header>
   );
 };

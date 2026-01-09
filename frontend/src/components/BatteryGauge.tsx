@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion';
-import { Battery, BatteryCharging, BatteryWarning, Zap } from 'lucide-react';
+import { Battery, BatteryCharging, BatteryWarning, Clock, Zap } from 'lucide-react';
 import { BatteryData } from '@/types/battery';
+import { useBatteryData } from '@/hooks/useBatteryData';
+import { MetricCard } from './MetricCard';
+
 
 interface BatteryGaugeProps {
   data: BatteryData;
@@ -9,6 +12,19 @@ interface BatteryGaugeProps {
 export const BatteryGauge = ({ data }: BatteryGaugeProps) => {
   const { percentage, status, health } = data;
   
+   const {
+      batteryData,
+      relayStatus,
+      toggleRelay,
+      updateAutoShutoff,
+    } = useBatteryData();
+  
+    const formatTimeRemaining = (minutes: number) => {
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return `${hours}h ${mins}m`;
+    };
+    
   const getStatusColor = () => {
     if (percentage <= 20) return 'text-destructive';
     if (percentage <= 40) return 'text-warning';
@@ -28,7 +44,7 @@ export const BatteryGauge = ({ data }: BatteryGaugeProps) => {
   };
 
   return (
-    <div className="glass-panel p-6 space-y-6">
+    <div className="glass-panel p-6 space-y-9">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-foreground">Status Baterai</h2>
         <StatusIcon />
@@ -97,7 +113,7 @@ export const BatteryGauge = ({ data }: BatteryGaugeProps) => {
       </div>
 
       {/* Health bar */}
-      <div className="space-y-2">
+      {/* <div className="space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Kesehatan Baterai</span>
           <span className="font-mono text-foreground">{health.toFixed(1)}%</span>
@@ -110,19 +126,28 @@ export const BatteryGauge = ({ data }: BatteryGaugeProps) => {
             transition={{ duration: 1 }}
           />
         </div>
-      </div>
+      </div> */}
 
       {/* Quick stats */}
-      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/50">
-        <div className="text-center">
+      <div className="grid grid-cols-1 gap-4 pt-4 border-t border-border/50">
+        {/* <div className="text-center">
           <span className="text-xs text-muted-foreground block">Siklus Pengisian</span>
           <span className="font-mono text-lg text-foreground">{data.cycleCount}</span>
         </div>
         <div className="text-center">
           <span className="text-xs text-muted-foreground block">Suhu</span>
           <span className="font-mono text-lg text-foreground">{data.temperature.toFixed(1)}°C</span>
-        </div>
+        </div> */}
+        <MetricCard
+          title="Sisa Waktu Baterai Habis"
+          value={formatTimeRemaining(batteryData.timeRemaining)}
+          unit=""
+          icon={Clock}
+          color={batteryData.timeRemaining < 30 ? 'destructive' : 'success'}
+        />
       </div>
+
+      
     </div>
   );
 };

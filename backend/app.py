@@ -9,6 +9,9 @@ import wmi
 
 app = Flask(__name__)
 
+# Global mode state
+current_mode = "MANUAL"
+
 
 @app.after_request
 def add_cors_headers(response):
@@ -103,13 +106,39 @@ def ssr():
     lines = read_serial()
     return jsonify({"result": result, "response_lines": lines})
 
+@app.route("/api/mode", methods=["GET"])
+def get_mode():
+    """Get current charger mode (MANUAL or AUTO)"""
+    return jsonify({"mode": current_mode})
+
+@app.route("/api/mode", methods=["POST"])
+def set_mode():
+    """Switch charger mode (MANUAL or AUTO)"""
+    global current_mode
+    payload = request.get_json(silent=True) or {}
+    new_mode = payload.get("mode", "").upper()
+    
+    if new_mode not in ["MANUAL", "AUTO"]:
+        return jsonify({"success": False, "error": "invalid mode"}), 400
+    
+    print(f"[MODE] Switching from {current_mode} to {new_mode}")
+    result = send_command(f"MODE:{new_mode}")
+    current_mode = new_mode
+    
+    return jsonify({
+        "success": result.get("success", False),
+        "mode": current_mode,
+        "result": result
+    })
+
 if __name__ == "__main__":
     init_db()
     try:
-        init_serial("COM3")  # ganti sesuai device
+        init_serial()  # auto-detect port
     except Exception as e:
         print(f"[WARNING] Could not connect to serial: {e}")
         print("[INFO] Flask app will still run but serial commands will fail")
     
     Thread(target=read_serial, daemon=True).start()
+    print("[Flask] Starting server on http://localhost:5000")
     app.run(port=5000, debug=False)

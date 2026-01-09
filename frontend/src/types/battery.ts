@@ -31,4 +31,5 @@ export interface SystemStatus {
   websocketConnected: boolean;
   lastUpdate: Date;
   uptime: number;
+  mode: 'MANUAL' | 'AUTO';
 }

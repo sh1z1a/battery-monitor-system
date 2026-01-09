@@ -18,11 +18,13 @@ import { RelayStatus } from '@/types/battery';
 
 interface RelayControlProps {
   status: RelayStatus;
+  mode: 'MANUAL' | 'AUTO';
   onToggle: (state: boolean) => void;
   onUpdateAutoShutoff: (enabled: boolean, threshold?: number) => void;
+  onSwitchMode: (mode: 'MANUAL' | 'AUTO') => void;
 }
 
-export const RelayControl = ({ status, onToggle, onUpdateAutoShutoff }: RelayControlProps) => {
+export const RelayControl = ({ status, mode, onToggle, onUpdateAutoShutoff, onSwitchMode }: RelayControlProps) => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingState, setPendingState] = useState<boolean | null>(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -54,12 +56,39 @@ export const RelayControl = ({ status, onToggle, onUpdateAutoShutoff }: RelayCon
     <>
       <div className="glass-panel p-6 space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground">Kontrol Relay</h2>
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Kontrol Relay</h2>
+            <p className="text-sm text-muted-foreground mt-1">Mode: <span className={mode === 'AUTO' ? 'text-success' : 'text-warning'}>{mode}</span></p>
+          </div>
           <button
             onClick={() => setShowSettings(!showSettings)}
             className="p-2 rounded-lg hover:bg-muted transition-colors"
           >
             <Settings className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </div>
+
+        {/* Mode Switch Buttons */}
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => onSwitchMode('MANUAL')}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              mode === 'MANUAL'
+                ? 'bg-warning/20 border-2 border-warning text-warning'
+                : 'bg-muted/50 border-2 border-transparent hover:bg-muted'
+            }`}
+          >
+            Manual Mode
+          </button>
+          <button
+            onClick={() => onSwitchMode('AUTO')}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              mode === 'AUTO'
+                ? 'bg-success/20 border-2 border-success text-success'
+                : 'bg-muted/50 border-2 border-transparent hover:bg-muted'
+            }`}
+          >
+            Auto Mode
           </button>
         </div>
 

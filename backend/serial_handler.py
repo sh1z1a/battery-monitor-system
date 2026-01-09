@@ -1,11 +1,26 @@
 from config import BAUD_RATE, TIMEOUT
 import serial
+import serial.tools.list_ports
 import time
 
 ser = None
 
 
-def init_serial(port):
+def find_available_port():
+    """Auto-detect Arduino/serial device port"""
+    ports = serial.tools.list_ports.comports()
+    if not ports:
+        return None
+    
+    # Prefer Arduino ports, fallback to first available
+    for port_info in ports:
+        if 'arduino' in port_info.description.lower() or 'ch340' in port_info.description.lower():
+            return port_info.device
+    
+    return ports[0].device if ports else None
+
+
+def init_serial(port=None):
     global ser
     if ser:
         try:
@@ -13,9 +28,15 @@ def init_serial(port):
         except Exception:
             pass
 
+    if not port:
+        port = find_available_port()
+        if not port:
+            raise Exception("No serial ports found")
+        print(f"[Serial] Auto-detected port: {port}")
+
     ser = serial.Serial(port, BAUD_RATE, timeout=TIMEOUT)
     time.sleep(2)
-    print(f"Serial connected: {port}")
+    print(f"[Serial] Connected: {port}")
 
 
 def send_command(cmd: str):
