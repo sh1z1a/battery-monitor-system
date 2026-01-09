@@ -83,7 +83,10 @@ export const useBatteryData = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const API_BASE = (import.meta.env.VITE_API_URL as string) || 'http://localhost:5000';
+
   const toggleRelay = useCallback((newState: boolean) => {
+    // optimistic UI update
     setRelayStatus(prev => ({
       ...prev,
       isConnected: newState,
@@ -100,6 +103,44 @@ export const useBatteryData = () => {
     };
 
     setActivityLogs(prev => [newLog, ...prev].slice(0, 50));
+
+    // send command to backend; if it fails, revert and log error
+    (async () => {
+      try {
+        const resp = await fetch(`${API_BASE}/api/ssr`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ state: newState }),
+        });
+
+        const data = await resp.json().catch(() => null);
+
+        if (!resp.ok || !data || !(data.result && data.result.success)) {
+          // revert optimistic change
+          setRelayStatus(prev => ({ ...prev, isConnected: !newState }));
+          const errLog: ActivityLog = {
+            id: Date.now().toString(),
+            timestamp: new Date(),
+            action: 'Gagal mengubah relay',
+            user: 'System',
+            details: `Backend error: ${data?.result?.error || data?.error || resp.statusText}`,
+            type: 'error',
+          };
+          setActivityLogs(prev => [errLog, ...prev].slice(0, 50));
+        }
+      } catch (e) {
+        setRelayStatus(prev => ({ ...prev, isConnected: !newState }));
+        const errLog: ActivityLog = {
+          id: Date.now().toString(),
+          timestamp: new Date(),
+          action: 'Gagal mengubah relay',
+          user: 'System',
+          details: `Network error: ${String(e)}`,
+          type: 'error',
+        };
+        setActivityLogs(prev => [errLog, ...prev].slice(0, 50));
+      }
+    })();
   }, []);
 
   const updateAutoShutoff = useCallback((enabled: boolean, threshold?: number) => {

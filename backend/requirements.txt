@@ -1,0 +1,4 @@
+Flask==2.3.3
+psutil==5.9.0
+pyserial==3.5
+WMI==1.5.1
