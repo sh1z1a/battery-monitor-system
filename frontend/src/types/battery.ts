@@ -1,13 +1,13 @@
 export interface BatteryData {
   percentage: number;
   status: 'charging' | 'discharging' | 'full' | 'not_charging';
-  voltage: number;
-  current: number;
-  power: number;
+  // voltage: number;
+  // current: number;
+  // power: number;
   timeRemaining: number; // in minutes
-  health: number;
-  temperature: number;
-  cycleCount: number;
+  // health: number;
+  // temperature: number;
+  // cycleCount: number;
 }
 
 export interface RelayStatus {

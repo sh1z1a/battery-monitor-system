@@ -52,7 +52,7 @@ export const RelayControl = ({ status, onToggle, onUpdateAutoShutoff }: RelayCon
 
   return (
     <>
-      <div className="glass-panel p-6 space-y-10">
+      <div className="glass-panel p-6 space-y-9">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-foreground">Kontrol Relay</h2>
           <button

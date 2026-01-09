@@ -29,7 +29,7 @@ const Index = () => {
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Column - Battery Gauge & Relay Control */}
-          <div className="lg:col-span-4 space-y-6">
+          <div className="lg:col-span-6 space-y-6">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -40,7 +40,7 @@ const Index = () => {
           </div>
 
           {/* Center Column - Metrics & Chart */}
-          <div className="lg:col-span-5 space-y-6">
+          <div className="lg:col-span-6 space-y-6">
             <div className="lg:col-span-4 space-y-6">
 
             <motion.div
@@ -58,8 +58,8 @@ const Index = () => {
           </div>
 
           {/* Right Column - Activity Log */}
-          <div className="lg:col-span-3">
-            {/* Metrics Grid */}
+          {/* Metrics Grid */}
+          {/* <div className="lg:col-span-3">
             <div className="grid grid-cols-1 gap-4">
               <MetricCard
                 title="Sisa Waktu Pengecasan"
@@ -67,7 +67,7 @@ const Index = () => {
                 unit=""
                 icon={Clock}
                 color={batteryData.timeRemaining < 30 ? 'destructive' : 'success'}
-              />
+              /> 
               <MetricCard
                 title="Tegangan"
                 value={batteryData.voltage}
@@ -90,7 +90,7 @@ const Index = () => {
                 color="primary"
               />
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Footer */}

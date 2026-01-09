@@ -1,109 +1,150 @@
-import { useState, useEffect, useCallback } from 'react';
-import { BatteryData, RelayStatus, ActivityLog, SystemStatus } from '@/types/battery';
+import { useState, useEffect, useCallback } from "react";
+import API from "@/lib/api";
+import { BatteryData, RelayStatus, ActivityLog } from "@/types/battery";
 
-// Mock data generator for demonstration
-const generateMockBatteryData = (): BatteryData => ({
-  percentage: Math.floor(Math.random() * 30) + 60,
-  status: Math.random() > 0.5 ? 'charging' : 'discharging',
-  voltage: 11.4 + Math.random() * 1.2,
-  current: 1.5 + Math.random() * 2,
-  power: 15 + Math.random() * 25,
-  timeRemaining: Math.floor(Math.random() * 180) + 60,
-  health: 85 + Math.random() * 10,
-  temperature: 35 + Math.random() * 10,
-  cycleCount: Math.floor(Math.random() * 200) + 100,
-});
+// ================= DEFAULT STATES =================
+const defaultBatteryData: BatteryData = {
+  percentage: 888,
+  status: "full",
+  // voltage: 888,
+  // current: 888,
+  // power: 888,
+  timeRemaining: 888,
+  // health: 888,
+  // temperature: 888,
+  // cycleCount: 888,
+};
 
 const initialRelayStatus: RelayStatus = {
-  isConnected: true,
+  isConnected: false,
   lastToggle: new Date(),
   autoShutoffEnabled: true,
   autoShutoffThreshold: 20,
 };
 
-const initialSystemStatus: SystemStatus = {
-  arduinoConnected: true,
-  websocketConnected: true,
-  lastUpdate: new Date(),
-  uptime: 3600 * 24 * 3,
-};
+// const initialSystemStatus: SystemStatus = {
+//   arduinoConnected: false,
+//   websocketConnected: false,
+//   lastUpdate: new Date(),
+//   uptime: 0,
+// };
 
-const mockActivityLogs: ActivityLog[] = [
-  {
-    id: '1',
-    timestamp: new Date(Date.now() - 60000),
-    action: 'Relay diaktifkan',
-    user: 'Admin',
-    details: 'Arus listrik dihubungkan ke baterai',
-    type: 'success',
-  },
-  {
-    id: '2',
-    timestamp: new Date(Date.now() - 300000),
-    action: 'Peringatan baterai rendah',
-    user: 'System',
-    details: 'Kapasitas baterai mencapai 25%',
-    type: 'warning',
-  },
-  {
-    id: '3',
-    timestamp: new Date(Date.now() - 600000),
-    action: 'Koneksi Arduino',
-    user: 'System',
-    details: 'Arduino terhubung via COM3',
-    type: 'info',
-  },
-];
-
+// ================= HOOK =================
 export const useBatteryData = () => {
-  const [batteryData, setBatteryData] = useState<BatteryData>(generateMockBatteryData());
+  const [batteryData, setBatteryData] = useState<BatteryData>(defaultBatteryData);
+
   const [relayStatus, setRelayStatus] = useState<RelayStatus>(initialRelayStatus);
-  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>(mockActivityLogs);
-  const [systemStatus, setSystemStatus] = useState<SystemStatus>(initialSystemStatus);
+
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+
+  // const [systemStatus, setSystemStatus] = useState<SystemStatus>(initialSystemStatus);
+
   const [powerHistory, setPowerHistory] = useState<{ time: string; power: number; current: number }[]>([]);
 
-  // Simulate real-time updates
+  // ================= FETCH BATTERY =================
   useEffect(() => {
-    const interval = setInterval(() => {
-      const newData = generateMockBatteryData();
-      setBatteryData(newData);
-      setSystemStatus(prev => ({
-        ...prev,
-        lastUpdate: new Date(),
-      }));
+    const fetchBatteryData = async () => {
+      try {
+        const res = await API.get("/battery");
+        const data = res.data;
 
-      setPowerHistory(prev => {
-        const now = new Date();
-        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-        const newHistory = [...prev, { time: timeStr, power: newData.power, current: newData.current }];
-        return newHistory.slice(-20);
-      });
-    }, 2000);
+        // Mapping MANUAL (WAJIB)
+        setBatteryData({
+          percentage: data.percentage ?? 0,
+          status: (data.plugged as BatteryData["status"]) ?? "not_charging",
+          // voltage: data.voltage ?? 0,
+          // current: data.current ?? 0,
+          // power: data.power ?? 0,
+          timeRemaining: data.seconds_left ?? 0,
+          // health: Number(data.health ?? 100),
+          // temperature: data.temperature ?? 0,
+          // cycleCount: data.cycleCount ?? 0,
+        });
 
+        // setSystemStatus((prev) => ({
+        //   ...prev,
+        //   arduinoConnected: true,
+        //   websocketConnected: true,
+        //   lastUpdate: new Date(),
+        // }));
+
+        // Update power history
+        setPowerHistory((prev) => {
+          const now = new Date().toLocaleTimeString();
+          const next = [
+            ...prev,
+            {
+              time: now,
+              power: data.power ?? 0,
+              current: data.current ?? 0,
+            },
+          ];
+          return next.slice(-20);
+        });
+      } catch (err) {
+        console.error("Battery API error:", err);
+        // setSystemStatus((prev) => ({
+        //   ...prev,
+        //   arduinoConnected: false,
+        //   websocketConnected: false,
+        // }));
+      }
+    };
+
+    fetchBatteryData();
+    const interval = setInterval(fetchBatteryData, 2000);
     return () => clearInterval(interval);
   }, []);
 
-  const toggleRelay = useCallback((newState: boolean) => {
-    setRelayStatus(prev => ({
-      ...prev,
-      isConnected: newState,
-      lastToggle: new Date(),
-    }));
-
-    const newLog: ActivityLog = {
-      id: Date.now().toString(),
-      timestamp: new Date(),
-      action: newState ? 'Relay diaktifkan' : 'Relay dinonaktifkan',
-      user: 'Admin',
-      details: newState ? 'Arus listrik dihubungkan ke baterai' : 'Arus listrik diputus dari baterai',
-      type: newState ? 'success' : 'warning',
+  // ================= FETCH LOGS =================
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const res = await API.get("/logs");
+        setActivityLogs(res.data ?? []);
+      } catch (err) {
+        console.error("Logs API error:", err);
+      }
     };
 
-    setActivityLogs(prev => [newLog, ...prev].slice(0, 50));
+    fetchLogs();
+    const interval = setInterval(fetchLogs, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // ================= RELAY CONTROL =================
+  const toggleRelay = useCallback(async (newState: boolean) => {
+    try {
+      await API.post("/ssr", {
+        state: newState ? "on" : "off",
+      });
+
+      setRelayStatus((prev) => ({
+        ...prev,
+        isConnected: newState,
+        lastToggle: new Date(),
+      }));
+
+      setActivityLogs((prev: ActivityLog[]) =>
+        [
+          {
+            id: Date.now().toString(),
+            timestamp: new Date(),
+            action: newState ? "Relay diaktifkan" : "Relay dinonaktifkan",
+            user: "Admin",
+            details: newState ? "Charger dihubungkan" : "Charger diputus",
+            type: newState ? ("success" as ActivityLog["type"]) : ("warning" as ActivityLog["type"]),
+          },
+          ...prev,
+        ].slice(0, 50)
+      );
+    } catch (err) {
+      console.error("SSR API error:", err);
+    }
   }, []);
 
   const updateAutoShutoff = useCallback((enabled: boolean, threshold?: number) => {
-    setRelayStatus(prev => ({
+    setRelayStatus((prev) => ({
       ...prev,
       autoShutoffEnabled: enabled,
       autoShutoffThreshold: threshold ?? prev.autoShutoffThreshold,
@@ -114,7 +155,7 @@ export const useBatteryData = () => {
     batteryData,
     relayStatus,
     activityLogs,
-    systemStatus,
+    // systemStatus,
     powerHistory,
     toggleRelay,
     updateAutoShutoff,
