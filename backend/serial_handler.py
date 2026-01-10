@@ -4,6 +4,7 @@ import serial.tools.list_ports
 import time
 
 ser = None
+_port = None
 
 
 def find_available_port():
@@ -35,6 +36,7 @@ def init_serial(port=None):
         print(f"[Serial] Auto-detected port: {port}")
 
     ser = serial.Serial(port, BAUD_RATE, timeout=TIMEOUT)
+    _port = port
     time.sleep(2)
     print(f"[Serial] Connected: {port}")
 
@@ -71,3 +73,25 @@ def read_serial():
         print("Error reading serial:", e)
 
     return lines
+
+
+def list_ports():
+    ports = serial.tools.list_ports.comports()
+    return [p.device for p in ports]
+
+
+def is_connected():
+    return ser is not None and getattr(ser, 'is_open', False)
+
+
+def get_port():
+    return _port
+
+
+def connect_port(port: str):
+    """Attempt to connect to specified port."""
+    try:
+        init_serial(port)
+        return {"success": True, "port": port}
+    except Exception as e:
+        return {"success": False, "error": str(e)}

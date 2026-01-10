@@ -92,7 +92,8 @@ export const RelayControl = ({ status, mode, onToggle, onUpdateAutoShutoff, onSw
           </button>
         </div>
 
-        {/* Main Power Button */}
+        {/* Main Power Button - Hidden in AUTO mode */}
+        {mode === 'MANUAL' && (
         <div className="flex flex-col items-center py-6">
           <motion.button
             onClick={() => handleToggleClick(!status.isConnected)}
@@ -140,6 +141,27 @@ export const RelayControl = ({ status, mode, onToggle, onUpdateAutoShutoff, onSw
             </div>
           </div>
         </div>
+        )}
+
+        {/* AUTO Mode Info */}
+        {mode === 'AUTO' ? (
+        <div className="flex flex-col items-center py-6 px-4 bg-success/10 rounded-lg">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-success mb-2">Mode Otomatis Aktif</p>
+            <p className="text-sm text-muted-foreground">
+              Relay akan dikontrol otomatis berdasarkan level baterai
+            </p>
+            <div className="mt-3 text-xs text-muted-foreground space-y-1">
+              <p>📊 Baterai ≤ {status.autoShutoffThreshold}% → Relay ON (Charging)</p>
+              <p>📊 Baterai ≥ 80% → Relay OFF (Full)</p>
+            </div>
+            <div className="mt-4 p-3 bg-success/5 rounded text-xs text-muted-foreground">
+              <p className="font-mono">✓ Backend controller sedang berjalan</p>
+              <p className="text-xs mt-1">Sistem akan mengecek setiap 5 detik</p>
+            </div>
+          </div>
+        </div>
+        ) : null}
 
         {/* Status Indicators */}
         <div className="grid grid-cols-2 gap-4">
@@ -171,9 +193,9 @@ export const RelayControl = ({ status, mode, onToggle, onUpdateAutoShutoff, onSw
           </div>
         </div>
 
-        {/* Settings Panel */}
+        {/* Settings Panel - Only show in MANUAL mode */}
         <AnimatePresence>
-          {showSettings && (
+          {showSettings && mode === 'MANUAL' && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}

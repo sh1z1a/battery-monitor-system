@@ -90,25 +90,38 @@ export const useBatteryData = () => {
 
     const fetchData = async () => {
       try {
-        const resp = await fetch(`${API_BASE}/api/battery`);
-        if (!resp.ok) throw new Error(resp.statusText || 'fetch failed');
-        const json = await resp.json();
+        // Fetch both battery data and mode
+        const [batteryResp, modeResp] = await Promise.all([
+          fetch(`${API_BASE}/api/battery`),
+          fetch(`${API_BASE}/api/mode`)
+        ]);
+        
+        if (!batteryResp.ok) throw new Error(batteryResp.statusText || 'battery fetch failed');
+        if (!modeResp.ok) throw new Error(modeResp.statusText || 'mode fetch failed');
+        
+        const batteryJson = await batteryResp.json();
+        const modeJson = await modeResp.json();
 
         if (!mounted) return;
 
-        const status = json.status || {};
-        const healthObj = json.health || {};
+        // Update mode from backend
+        if (modeJson && modeJson.mode) {
+          setSystemStatus(prev => ({ ...prev, mode: modeJson.mode }));
+        }
+
+        const status = batteryJson.status || {};
+        const healthObj = batteryJson.health || {};
 
         const newData: BatteryData = {
           percentage: typeof status.percentage === 'number' ? status.percentage : batteryData.percentage,
           status: status.plugged ? 'charging' : 'discharging',
-          voltage: typeof json.voltage === 'number' ? json.voltage : batteryData.voltage,
-          current: typeof json.current === 'number' ? json.current : batteryData.current,
-          power: typeof json.power === 'number' ? json.power : batteryData.power,
+          voltage: typeof batteryJson.voltage === 'number' ? batteryJson.voltage : batteryData.voltage,
+          current: typeof batteryJson.current === 'number' ? batteryJson.current : batteryData.current,
+          power: typeof batteryJson.power === 'number' ? batteryJson.power : batteryData.power,
           timeRemaining: parseTimeLeft(status.time_left),
           health: typeof healthObj.health_percent === 'number' ? healthObj.health_percent : batteryData.health,
-          temperature: typeof json.temperature_celsius === 'number' ? json.temperature_celsius : batteryData.temperature,
-          cycleCount: typeof json.estimated_cycles === 'number' ? json.estimated_cycles : batteryData.cycleCount,
+          temperature: typeof batteryJson.temperature_celsius === 'number' ? batteryJson.temperature_celsius : batteryData.temperature,
+          cycleCount: typeof batteryJson.estimated_cycles === 'number' ? batteryJson.estimated_cycles : batteryData.cycleCount,
         };
 
         setBatteryData(newData);
@@ -207,6 +220,22 @@ export const useBatteryData = () => {
       autoShutoffEnabled: enabled,
       autoShutoffThreshold: threshold ?? prev.autoShutoffThreshold,
     }));
+    
+    // Also send to backend to update AUTO mode thresholds
+    if (threshold !== undefined) {
+      (async () => {
+        try {
+          await fetch(`${API_BASE}/api/thresholds`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ low_threshold: threshold }),
+          });
+          console.log(`[Frontend] Updated threshold to ${threshold}%`);
+        } catch (e) {
+          console.error('Failed to update threshold:', e);
+        }
+      })();
+    }
   }, []);
 
   const switchMode = useCallback((newMode: 'MANUAL' | 'AUTO') => {
@@ -221,6 +250,7 @@ export const useBatteryData = () => {
         const data = await resp.json().catch(() => null);
 
         if (resp.ok && data && data.success) {
+          // Update state immediately
           setSystemStatus(prev => ({ ...prev, mode: newMode }));
           const log: ActivityLog = {
             id: Date.now().toString(),
@@ -231,16 +261,18 @@ export const useBatteryData = () => {
             type: 'success',
           };
           setActivityLogs(prev => [log, ...prev].slice(0, 50));
+          console.log(`[Frontend] Mode switched to ${newMode}`);
         } else {
           const errLog: ActivityLog = {
             id: Date.now().toString(),
             timestamp: new Date(),
             action: 'Gagal mengubah mode',
             user: 'System',
-            details: `Backend error: ${data?.result?.error || resp.statusText}`,
+            details: `Backend error: ${data?.error || data?.result?.error || resp.statusText}`,
             type: 'error',
           };
           setActivityLogs(prev => [errLog, ...prev].slice(0, 50));
+          console.error('[Frontend] Failed to switch mode:', data);
         }
       } catch (e) {
         const errLog: ActivityLog = {
@@ -252,6 +284,7 @@ export const useBatteryData = () => {
           type: 'error',
         };
         setActivityLogs(prev => [errLog, ...prev].slice(0, 50));
+        console.error('[Frontend] Network error switching mode:', e);
       }
     })();
   }, []);
