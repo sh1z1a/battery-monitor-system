@@ -3,14 +3,16 @@ import time
 import psutil
 import serial
 
+
+
 # ===== CONFIG =====
 BAUD = 115200
 TIMEOUT = 1
 PORT = 'COM3'
 
-LOW_THRESHOLD = 60
+LOW_THRESHOLD = 80
 HIGH_THRESHOLD = 90
-CHECK_INTERVAL = 5
+# CHECK_INTERVAL = 1
 
 current_mode = "MANUAL"
 current_state = "OFF"

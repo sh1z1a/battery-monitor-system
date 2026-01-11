@@ -1,3 +1,4 @@
+from flask import Flask, request, jsonifyq
 from config import BAUD_RATE, TIMEOUT, SERIAL_PORT, DB_NAME
 import time
 import psutil
